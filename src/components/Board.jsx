@@ -14,6 +14,7 @@ import BlackPawn from "./blackShapes/BlackPawn";
 import BlackBishop from "./blackShapes/BlackBishop";
 
 export default function Board() {
+  const [currentPlayer, setCurrentPlayer] = useState("white");
   const size = 8;
   const letters = ["A", "B", "C", "D", "E", "F", "G", "H"];
   const numbers = ["1", "2", "3", "4", "5", "6", "7", "8"];
@@ -55,7 +56,6 @@ export default function Board() {
 
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [possibleMoves, setPossibleMoves] = useState([]);
-
   const [positions, setPositions] = useState({});
 
   useEffect(() => {
@@ -134,6 +134,12 @@ export default function Board() {
 
   function selectPiece(position, color) {
     console.log("Selecting piece:", position, color);
+
+    if (color !== currentPlayer) {
+      console.log("Not your turn!");
+      return;
+    }
+
     const moves = getPawnMoves(position, color);
     setSelectedPiece(position);
     setPossibleMoves(moves);
@@ -143,19 +149,22 @@ export default function Board() {
     if (possibleMoves.includes(toPosition) && selectedPiece) {
       setPositions((prevPositions) => {
         const newPositions = { ...prevPositions };
-        delete newPositions[selectedPiece];
-        newPositions[toPosition] = React.cloneElement(
+
+        // Получаем компонент фигуры, которую перемещаем
+        const pieceComponent = React.cloneElement(
           prevPositions[selectedPiece],
-          {
-            onClick: () => handlePieceClick(toPosition, "white"),
-          }
+          { onClick: () => handlePieceClick(toPosition, currentPlayer) }
         );
+
+        delete newPositions[selectedPiece]; // Удаляем фигуру со старой позиции
+        newPositions[toPosition] = pieceComponent; // Добавляем фигуру на новую позицию
 
         return newPositions;
       });
 
       setSelectedPiece(null);
       setPossibleMoves([]);
+      setCurrentPlayer(currentPlayer === "white" ? "black" : "white");
     }
   }
 
